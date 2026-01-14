@@ -15,8 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GuessGame\GuessGame.csproj" />
-    <ProjectReference Include="..\MyProjects\CalculatorApp.csproj" />
+    <ProjectReference Include="..\TelegramBotApp\TelegramBotApp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

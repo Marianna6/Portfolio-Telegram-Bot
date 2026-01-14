@@ -1,8 +1,19 @@
-# "Вышибала" 💂 для .NET (C#)
-
-# "Мусор" 🗑️ Visual Studio (Папка .vs)
-.vs/
-
-# "Мусор" 🗑️ Сборки (Папки bin/obj)
+# Build Artifacts
+# Exclude temporary build files and binaries
 [Bb]in/
 [Oo]bj/
+
+# Visual Studio Settings
+# Exclude user-specific configuration and cache
+.vs/
+*.user
+*.suo
+
+# Database
+# Exclude local database files to protect data
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+*.log
