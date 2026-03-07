@@ -37,33 +37,30 @@ namespace TelegramBotApp.Logic
 		/// </summary>
 		private string RegisterUser(long Id, string name)
 		{
-			using (var db = new ApplicationDbContext())
+			using var db = new ApplicationDbContext();
+
+			var existingUser = db.Clients.FirstOrDefault(c => c.TelegramId == Id);
+
+			if (existingUser == null)
 			{
 
-				var existingUser = db.Clients.FirstOrDefault(c => c.TelegramId == Id);
-
-				if (existingUser == null)
+				var newClient = new Client
 				{
+					TelegramId = Id,
+					Name = name,
+					RegisteredAt = DateTime.Now
+				};
 
-					var newClient = new Client
-					{
-						TelegramId = Id,
-						Name = name,
-						RegisteredAt = DateTime.Now
-					};
+				db.Clients.Add(newClient);
+				db.SaveChanges();
 
-					db.Clients.Add(newClient);
-					db.SaveChanges();
-
-					return $"Hi {name}! You have successfully registered.\n" +
-						   "Type 'services' to see what we offer.";
-				}
-				else
-				{
-					return $"Welcome back, {name}! \n" +
-						   "Type 'services' or 'booking'.";
-				}
+				return $"Hi {name}! You have successfully registered.\n" +
+					   "Type 'services' to see what we offer.";
 			}
+
+			return $"Welcome back, {name}! \n" +
+				   "Type 'services' or 'booking'.";
+
 		}
 
 		/// <summary>

@@ -1,172 +1,116 @@
 ﻿using TelegramBotApp.Data;
 using TelegramBotApp.Logic;
+using Shouldly;
 
 namespace MyProjects.Tests
 {
-	public class BotLogicTests
+
+	public class BotLogicTests : IClassFixture<BotFixture>
 	{
-		public BotLogicTests()
+		private readonly BotLogic _logic;
+
+		public BotLogicTests(BotFixture fixture)
 		{
-			using (var db = new ApplicationDbContext())
-			{
-				db.Database.EnsureCreated();
-			}
+			_logic = fixture.Logic;
 		}
 
 		[Theory]
-		[InlineData("services", "Choose your service:\n1. Massage (€40) -> type: /book_massage\n2. Facial (€50) -> type: /book_facial")]
-		[InlineData("booking", "To simplify, I automatically book for Tomorrow.\n Just type: /book_massage or /book_facial")]
-		[InlineData("afjrikfjr", "Sorry, I didn't understand that. Type /start to begin.")]
-		public void GetResponse_InputCommands_ReturnsCorrectMessage(string userMessage, string expectedResponse)
+		[MemberData(nameof(BotLogicTestData.GetBotCommands), MemberType = typeof(BotLogicTestData))]
+		public void GetResponse_InputCommands_ReturnsCorrectMessage(long id, string name, string userMessage, string expectedResponse)
 		{
-
-			var logic = new BotLogic();
-			long userId = DateTime.Now.Ticks;
-			string userName = "Tester";
-
-			string actualResponse = logic.GetResponse(userId, userName, userMessage);
-
-			Assert.Equal(expectedResponse, actualResponse);
+			string actualResponse = _logic.GetResponse(id, name, userMessage);
+			actualResponse.ShouldBe(expectedResponse);
 		}
 
-		[Fact]
-		public void RegisterUser_NewUser_SavesToDatabase()
+		[Theory]
+		[MemberData(nameof(BotLogicTestData.RegistrationData), MemberType = typeof(BotLogicTestData))]
+		public void RegisterUser_NewUser_SavesToDatabase(long id, string name)
 		{
 
-			var logic = new BotLogic();
-			long userId = DateTime.Now.Ticks;
-			string userName = "Tester";
+			string response = _logic.GetResponse(id, name, "/start");
 
-			string response = logic.GetResponse(userId, userName, "/start");
+			response.ShouldContain($"Hi {name}");
 
-			Assert.Contains($"Hi {userName}", response);
+			using var db = new ApplicationDbContext();
+			var savedUser = db.Clients.FirstOrDefault(c => c.TelegramId == id);
 
-			using (var db = new ApplicationDbContext())
-			{
-				var savedUser = db.Clients.FirstOrDefault(c => c.TelegramId == userId);
+			savedUser.ShouldNotBeNull();
+            savedUser.Name.ShouldBe(name);
 
-				Assert.NotNull(savedUser);
-
-				Assert.Equal(userName, savedUser.Name);
-			}
 		}
 
-		[Fact]
-		public void RegisterUser_ExistingUser_ReturnsWelcomeBack()
+		[Theory]
+		[MemberData(nameof(BotLogicTestData.RegistrationData), MemberType = typeof(BotLogicTestData))]
+		public void RegisterUser_ExistingUser_ReturnsWelcomeBack(long id, string name)
 		{
 
-			var logic = new BotLogic();
-			long userId = DateTime.Now.Ticks;
-			string userName = "Tester";
+			_logic.GetResponse(id, name, "/start");
+			string response = _logic.GetResponse(id, name, "/start");
 
-			logic.GetResponse(userId, userName, "/start");
-			string response = logic.GetResponse(userId, userName, "/start");
-
-			Assert.Contains("Welcome back", response);
-			Assert.Contains(userName, response);
+			response.ShouldContain("Welcome back");
+			response.ShouldContain(name);
 		}
 
-		[Fact]
-		public void GetResponse_BookMassage_CreatesBookingInDb()
+		[Theory]
+		[MemberData(nameof(BotLogicTestData.BookingData), MemberType = typeof(BotLogicTestData))]
+		public void BookService_CreatesBookingInDb(long id, string name, string serviceMessage, string expectedService)
 		{
-			var logic = new BotLogic();
-			long userId = DateTime.Now.Ticks;
-			string userName = "MassageBooker";
-			string serviceName = "Massage";
 
-			logic.GetResponse(userId, userName, "/start");
+			_logic.GetResponse(id, name, "/start");
 
-			string response = logic.GetResponse(userId, userName, "/book_massage");
+			string response = _logic.GetResponse(id, name, serviceMessage);
 
-			Assert.Contains($"Awesome! I booked a {serviceName}", response);
+			response.ShouldContain($"Awesome! I booked a {expectedService}");
 
-			using (var db = new ApplicationDbContext())
-			{
-				var booking = db.Bookings.FirstOrDefault(b => b.ClientTelegramId == userId);
-				Assert.NotNull(booking);
-				Assert.Equal(serviceName, booking.ServiceName);
-				Assert.Equal(userId, booking.ClientTelegramId);
-			}
+			using var db = new ApplicationDbContext();
+			var booking = db.Bookings.FirstOrDefault(b => b.ClientTelegramId == id);
+
+			booking.ShouldNotBeNull();
+			booking.ServiceName.ShouldBe(expectedService);
 		}
 
-		[Fact]
-		public void GetResponse_BookFacial_CreatesBookingInDb()
+		[Theory]
+		[MemberData(nameof(BotLogicTestData.RegistrationData), MemberType = typeof(BotLogicTestData))]
+		public void GetResponse_Cancel_RemovesBooking(long id, string name)
 		{
 
-			var logic = new BotLogic();
-			long userId = DateTime.Now.Ticks;
-			string userName = "FacialBooker";
-			string serviceName = "Facial";
+			_logic.GetResponse(id, name, "/start");
+			_logic.GetResponse(id, name, "/book_massage");
 
-			logic.GetResponse(userId, userName, "/start");
+			string response = _logic.GetResponse(id, name, "/cancel");
 
-			string response = logic.GetResponse(userId, userName, "/book_facial");
+			response.ShouldBe("Your booking has been cancelled.");
 
-			Assert.Contains($"Awesome! I booked a {serviceName}", response);
-
-			using (var db = new ApplicationDbContext())
-			{
-				var booking = db.Bookings.FirstOrDefault(b => b.ClientTelegramId == userId);
-				Assert.NotNull(booking);
-				Assert.Equal(serviceName, booking.ServiceName);
-				Assert.Equal(userId, booking.ClientTelegramId);
-			}
+			using var db = new ApplicationDbContext();
+			var booking = db.Bookings.FirstOrDefault(b => b.ClientTelegramId == id);
+			booking.ShouldBeNull();
 		}
 
-		[Fact]
-		public void GetResponse_Cancel_RemovesBooking()
+		[Theory]
+		[MemberData(nameof(BotLogicTestData.RegistrationData), MemberType = typeof(BotLogicTestData))]
+		public void GetResponse_CreateBooking_WithoutRegistration_ReturnsError(long id, string name)
 		{
 
-			var logic = new BotLogic();
-			long userId = DateTime.Now.Ticks;
-			string userName = "Canceller";
+			string response = _logic.GetResponse(id, name, "/book_massage");
 
-			logic.GetResponse(userId, userName, "/start");
-			logic.GetResponse(userId, userName, "/book_massage");
+			response.ShouldBe("Error: You are not registered. Please type /start first.");
 
-			string response = logic.GetResponse(userId, userName, "/cancel");
+			using var db = new ApplicationDbContext();
+			var booking = db.Bookings.FirstOrDefault(b => b.ClientTelegramId == id);
 
-			Assert.Equal("Your booking has been cancelled.", response);
-
-			using (var db = new ApplicationDbContext())
-			{
-				var booking = db.Bookings.FirstOrDefault(b => b.ClientTelegramId == userId);
-				Assert.Null(booking);
-			}
+			booking.ShouldBeNull();
 		}
 
-		[Fact]
-		public void GetResponse_CreateBooking_WithoutRegistration_ReturnsError()
+		[Theory]
+		[MemberData(nameof(BotLogicTestData.RegistrationData), MemberType = typeof(BotLogicTestData))]
+		public void GetResponse_Cancel_NoBooking_ReturnsError(long id, string name)
 		{
 
-			var logic = new BotLogic();
-			long userId = DateTime.Now.Ticks;
+			_logic.GetResponse(id, name, "/start");
 
-			string response = logic.GetResponse(userId, "GhostUser", "/book_massage");
+			string response = _logic.GetResponse(id, name, "/cancel");
 
-			Assert.Equal("Error: You are not registered. Please type /start first.", response);
-
-			using (var db = new ApplicationDbContext())
-			{
-
-				var booking = db.Bookings.FirstOrDefault(b => b.ClientTelegramId == userId);
-
-				Assert.Null(booking);
-			}
-		}
-
-		[Fact]
-		public void GetResponse_Cancel_NoBooking_ReturnsError()
-		{
-			var logic = new BotLogic();
-			long userId = DateTime.Now.Ticks;
-			string userName = "EmptyUser";
-
-			logic.GetResponse(userId, userName, "/start");
-
-			string response = logic.GetResponse(userId, userName, "/cancel");
-
-			Assert.Equal("You have no active bookings to cancel.", response);
+			response.ShouldBe("You have no active bookings to cancel.");
 		}
 	}
 }
