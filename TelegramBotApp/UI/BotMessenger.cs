@@ -9,13 +9,13 @@ namespace TelegramBotApp.UI
 	public class BotMessenger
 	{
 		private readonly TelegramBotClient _botClient;
-		private readonly BotLogic _logic;
+		private readonly IBotLogic _logic;
 		private CancellationTokenSource _cts;
 
-		public BotMessenger(string token)
+		public BotMessenger(string token, IBotLogic logic)
 		{
 			_botClient = new TelegramBotClient(token);
-			_logic = new BotLogic();
+			_logic = logic;
 			_cts = new CancellationTokenSource();
 		}
 
@@ -42,9 +42,9 @@ namespace TelegramBotApp.UI
 			_cts.Cancel();
 		}
 
-		private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+		public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
 		{
-			if (update.Message == null || update.Message.Text == null)
+			if (update.Message?.Text == null || string.IsNullOrWhiteSpace(update.Message.Text))
 				return;
 
 			var chatId = update.Message.Chat.Id;
@@ -62,7 +62,7 @@ namespace TelegramBotApp.UI
 			);
 		}
 
-		private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+		public Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
 		{
 			Console.WriteLine($"Error: {exception.Message}");
 			return Task.CompletedTask;

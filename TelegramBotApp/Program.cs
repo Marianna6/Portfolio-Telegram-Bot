@@ -1,4 +1,5 @@
 ﻿using TelegramBotApp.Data;
+using TelegramBotApp.Logic;
 using TelegramBotApp.UI;
 
 namespace TelegramBotApp
@@ -23,7 +24,8 @@ namespace TelegramBotApp
 				}
 			}
 
-			var bot = new BotMessenger("Token");
+			var logic = new BotLogic();
+			var bot = new BotMessenger("Token", logic);
 
 			await bot.Start();
 

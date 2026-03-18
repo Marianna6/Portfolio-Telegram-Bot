@@ -8,10 +8,12 @@ namespace MyProjects.Tests
 	public class BotLogicTests : IClassFixture<BotFixture>
 	{
 		private readonly BotLogic _logic;
+		private readonly ApplicationDbContext _db;
 
 		public BotLogicTests(BotFixture fixture)
 		{
 			_logic = fixture.Logic;
+			_db = fixture.Db;
 		}
 
 		[Theory]
@@ -31,8 +33,7 @@ namespace MyProjects.Tests
 
 			response.ShouldContain($"Hi {name}");
 
-			using var db = new ApplicationDbContext();
-			var savedUser = db.Clients.FirstOrDefault(c => c.TelegramId == id);
+			var savedUser = _db.Clients.FirstOrDefault(c => c.TelegramId == id);
 
 			savedUser.ShouldNotBeNull();
             savedUser.Name.ShouldBe(name);
@@ -62,8 +63,7 @@ namespace MyProjects.Tests
 
 			response.ShouldContain($"Awesome! I booked a {expectedService}");
 
-			using var db = new ApplicationDbContext();
-			var booking = db.Bookings.FirstOrDefault(b => b.ClientTelegramId == id);
+			var booking = _db.Bookings.FirstOrDefault(b => b.ClientTelegramId == id);
 
 			booking.ShouldNotBeNull();
 			booking.ServiceName.ShouldBe(expectedService);
@@ -81,8 +81,7 @@ namespace MyProjects.Tests
 
 			response.ShouldBe("Your booking has been cancelled.");
 
-			using var db = new ApplicationDbContext();
-			var booking = db.Bookings.FirstOrDefault(b => b.ClientTelegramId == id);
+			var booking = _db.Bookings.FirstOrDefault(b => b.ClientTelegramId == id);
 			booking.ShouldBeNull();
 		}
 
@@ -95,8 +94,7 @@ namespace MyProjects.Tests
 
 			response.ShouldBe("Error: You are not registered. Please type /start first.");
 
-			using var db = new ApplicationDbContext();
-			var booking = db.Bookings.FirstOrDefault(b => b.ClientTelegramId == id);
+			var booking = _db.Bookings.FirstOrDefault(b => b.ClientTelegramId == id);
 
 			booking.ShouldBeNull();
 		}

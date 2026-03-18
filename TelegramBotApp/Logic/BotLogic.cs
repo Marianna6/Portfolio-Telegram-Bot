@@ -8,7 +8,7 @@ namespace TelegramBotApp.Logic
 	/// Handles user commands, database interactions, and response generation.
 	/// Contains the core business logic of the bot.
 	/// </summary>
-	public class BotLogic
+	public class BotLogic : IBotLogic
 	{
 		/// <summary>
 		/// Main entry point.

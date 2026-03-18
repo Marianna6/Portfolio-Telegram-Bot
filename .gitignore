@@ -17,3 +17,9 @@
 
 # Logs
 *.log
+
+# Configuration and Secrets
+# Exclude files containing sensitive tokens and local test settings
+.runsettings
+launchSettings.json
+.env
