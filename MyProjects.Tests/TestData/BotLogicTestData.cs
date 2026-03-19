@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace MyProjects.Tests
+﻿namespace MyProjects.Tests.TestData
 {
 	public static class BotLogicTestData
 	{
