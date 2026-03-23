@@ -1,4 +1,4 @@
-# Telegram Bot: Database & Logic Testing (xUnit)
+# Telegram Bot: Database, Logic & Messenger Testing (xUnit)
 
 ![Bot Demo](demo.mp4)
 
@@ -12,20 +12,17 @@ The application is split into three distinct layers to ensure Separation of Conc
 * **Data Layer** (`TelegramBotApp.Data`): Handles the SQLite database connection using **Entity Framework Core**. Contains the `Client` and `Booking` data models.
 * **Logic Layer** (`TelegramBotApp.Logic`): The "Brain" of the bot (`BotLogic`). It handles routing via the main `GetResponse` method, performs validation (e.g., checking registration status), and executes database commands.
 * **UI Layer** (`TelegramBotApp.UI`): Manages the interaction with the Telegram API. It processes incoming updates and passes user input to the Logic layer.
-* **Tests** (`MyProjects.Tests`): A comprehensive xUnit test suite that verifies the logic and database integration.
+* **Tests** (`MyProjects.Tests`): A separate project with a clear structure for tests and test data.
 
 ## Test Strategy and Coverage
 
- This suite performs Integration Testing using a real SQLite database environment. This ensures that INSERT and DELETE operations actually work as expected.
- The test suite covers the full lifecycle of a user interaction using the "Arrange, Act, Assert" pattern.
+The project utilizes **xUnit** and **Shouldly** to verify the bot's lifecycle and stability using the **Arrange, Act, Assert** pattern.
 
-* **Data-Driven Command Testing:** Used [Theory] and [InlineData] to verify that the central router (GetResponse) correctly handles various text commands like "services", "booking", or gibberish.
-* **Database State Verification:** Verified that logic changes the database state correctly:
-    * Registration: Assert.NotNull(savedUser) confirms a new client is actually saved.
-    * Booking: Verified that a booking is linked to the correct TelegramId
-	* Cancellation: Verified that /cancel physically removes the record (Assert.Null).
-* **Encapsulation Testing:** Tested private methods (like CreateBooking) via the public entry point (GetResponse).
-* **Negative & Security Testing:** Confirmed that a "Ghost User" (not in DB) receives an error when trying to book, and handling cancellation when no booking exists.
+* **Data-Driven Testing:** Implementation of [Theory] and [MemberData] to execute test cases with multiple inputs.
+* **Class Fixtures:** Use of IClassFixture to share expensive resources (Database Context, Bot Client) across multiple tests, optimizing memory usage.
+* **Decoupled Test Data:** Static test objects and predefined Telegram Update instances are moved to a separate TestData layer for better maintainability.
+* **Boundary Testing:** Handling of null messages, empty strings, and malformed Telegram updates to ensure bot resilience.
+* **Parallel Execution:** Configured xunit.runner.json to enable parallel test collection execution.
 
 ## Key Skills Demonstrated
 
@@ -42,5 +39,5 @@ The application is split into three distinct layers to ensure Separation of Conc
 * **Language:** C#
 * **Framework:** .NET 9
 * **Data:** SQLite + Entity Framework Core
-* **Testing:** xUnit
+* **Testing:** xUnit + Shouldly
 * **Library:** Telegram.Bot
