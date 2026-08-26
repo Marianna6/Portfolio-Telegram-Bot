@@ -18,9 +18,14 @@ namespace MyProjects.Tests.Tests
 			Db.Database.EnsureCreated();
 			Logic = new BotLogic();
 
-			var token = Environment.GetEnvironmentVariable("MY_TG_TOKEN");
-			BotClient = new TelegramBotClient(token);
-			Messenger = new BotMessenger(token, Logic);
+			DotNetEnv.Env.Load();
+
+			var botToken = Environment.GetEnvironmentVariable("MY_TG_TOKEN");
+			if (string.IsNullOrEmpty(botToken))
+				throw new InvalidOperationException("Bot token is empty, check environment variables.");
+			
+			BotClient = new TelegramBotClient(botToken);
+			Messenger = new BotMessenger(botToken, Logic);
 		}
 
 		public void Dispose()

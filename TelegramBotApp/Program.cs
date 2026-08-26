@@ -23,9 +23,18 @@ namespace TelegramBotApp
 					Console.WriteLine("Database already exists.");
 				}
 			}
+			
+			DotNetEnv.Env.Load();
+			
+			var botToken = Environment.GetEnvironmentVariable("MY_TG_TOKEN");
+			if (string.IsNullOrEmpty(botToken))
+			{
+				Console.WriteLine("Bot token is empty, check environment variables.");
+				return;
+			}
 
 			var logic = new BotLogic();
-			var bot = new BotMessenger("Token", logic);
+			var bot = new BotMessenger(botToken, logic);
 
 			await bot.Start();
 
