@@ -1,4 +1,4 @@
-﻿namespace MyProjects.Tests.TestData
+﻿namespace TelegramBotApp.Tests.TestData
 {
 	public static class BotLogicTestData
 	{

@@ -1,9 +1,9 @@
 ﻿using TelegramBotApp.Data;
 using TelegramBotApp.Logic;
 using Shouldly;
-using MyProjects.Tests.TestData;
+using TelegramBotApp.Tests.TestData;
 
-namespace MyProjects.Tests.Tests.BotLogicTests
+namespace TelegramBotApp.Tests.Tests.BotLogicTests
 {
 
 	public class BotLogicTests : IClassFixture<BotFixture>

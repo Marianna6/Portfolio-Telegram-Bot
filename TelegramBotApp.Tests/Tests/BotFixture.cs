@@ -3,7 +3,7 @@ using TelegramBotApp.Data;
 using TelegramBotApp.Logic;
 using TelegramBotApp.UI;
 
-namespace MyProjects.Tests.Tests
+namespace TelegramBotApp.Tests.Tests
 {
 	public class BotFixture : IDisposable
 	{
