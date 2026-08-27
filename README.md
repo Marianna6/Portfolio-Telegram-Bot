@@ -12,7 +12,7 @@ The application is split into three distinct layers to ensure Separation of Conc
 * **Data Layer** (`TelegramBotApp.Data`): Handles the SQLite database connection using **Entity Framework Core**. Contains the `Client` and `Booking` data models.
 * **Logic Layer** (`TelegramBotApp.Logic`): The "Brain" of the bot (`BotLogic`). It handles routing via the main `GetResponse` method, performs validation (e.g., checking registration status), and executes database commands.
 * **UI Layer** (`TelegramBotApp.UI`): Manages the interaction with the Telegram API. It processes incoming updates and passes user input to the Logic layer.
-* **Tests** (`MyProjects.Tests`): A separate project with a clear structure for tests and test data.
+* **Tests** (`TelegramBotApp.Tests`): A separate project with a clear structure for tests and test data.
 
 ## Test Strategy and Coverage
 
@@ -41,3 +41,5 @@ The project utilizes **xUnit** and **Shouldly** to verify the bot's lifecycle an
 * **Data:** SQLite + Entity Framework Core
 * **Testing:** xUnit + Shouldly
 * **Library:** Telegram.Bot
+
+Note: to run locally, create a .env file with BOT_TOKEN=your_token and set its properties to Copy Always to Output Directory in your IDE so the test runner can read it during the build.
